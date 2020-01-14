@@ -1,16 +1,16 @@
-# Template file for 'linux5.4'
+# Template file for 'linux-pinebook-pro'
 pkgname=linux-pinebook-pro
-version=5.4.0
-_commit=e81a379aa96359d889daaf25da777f9eaa85a875
-revision=1
+version=5.5.rc5
+_realver="5.5-rc5"
+_commit=f28401c31807b1ae5a60094f7230b059003f0438
+revision=0
 wrksrc="linux-pinebook-pro-${_commit}"
 short_desc="Linux kernel and modules for Pinebook Pro"
 maintainer="Cameron Nemo <cnemo@tutanota.com>"
 license="GPL-2.0-only"
-homepage="https://www.kernel.org"
-#distfiles="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${version}.tar.xz"
-distfiles="https://gitlab.manjaro.org/tsys/linux-pinebook-pro/-/archive/${_commit}/linux-pinebook-pro-${_commit}.tar.gz"
-checksum="da101f57174fd7ccb66f9a6a64ac7b7b011a5cc5c03684100939b1b762623844"
+homepage="https://gitlab.manjaro.org/tsys/linux-pinebook-pro"
+distfiles="https://gitlab.manjaro.org/tsys/${pkgname}/-/archive/${_commit}/${pkgname}-${_commit}.tar.gz"
+checksum="c46301e37871e0bbf7d934048c39a2ca3dba1efa95610f75a21ac75fbc07f963"
 patch_args="-Np1"
 
 nodebug=yes  # -dbg package is generated below manually
@@ -23,7 +23,7 @@ archs="aarch64*"
 hostmakedepends="bc elfutils-devel flex gmp-devel kmod libmpc-devel 
  libressl-devel perl uboot-mkimage cpio"
 
-_kernver="${version}_${revision}"
+_kernver="${_realver}_${revision}"
 triggers="kernel-hooks"
 kernel_hooks_version="${_kernver}"
 

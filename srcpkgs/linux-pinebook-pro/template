@@ -1,16 +1,16 @@
 # Template file for 'linux-pinebook-pro'
 pkgname=linux-pinebook-pro
-version=5.5.rc7
-_realver="5.5.0-rc7"
-_commit=b3ba5b2b87e9bd191265776b93277e49d044b79e
-revision=0
+version=5.5.0
+_realver="5.5.0"
+_commit=d71a774aee61d67970d53077ef59be29035b1c90
+revision=1
 wrksrc="linux-pinebook-pro-${_commit}"
 short_desc="Linux kernel and modules for Pinebook Pro"
 maintainer="Cameron Nemo <cnemo@tutanota.com>"
 license="GPL-2.0-only"
 homepage="https://gitlab.manjaro.org/tsys/linux-pinebook-pro"
 distfiles="https://gitlab.manjaro.org/tsys/${pkgname}/-/archive/${_commit}/${pkgname}-${_commit}.tar.gz"
-checksum="@4bcd3037c87056af89b3d958144734a96e7ade3cd374bdc84a1e94c3f3b609cc"
+checksum="4fd9c676d2c01258884fcfa94991ed778cf4242e36d98a9d2242495173ea14dd"
 patch_args="-Np1"
 
 nodebug=yes  # -dbg package is generated below manually

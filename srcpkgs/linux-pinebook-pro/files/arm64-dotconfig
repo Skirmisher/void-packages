@@ -5552,7 +5552,7 @@ CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
 CONFIG_BOOTSPLASH=y
 # end of Console display driver support
 
-# CONFIG_LOGO is not set
+CONFIG_LOGO=y
 # end of Graphics support
 
 CONFIG_SOUND=y

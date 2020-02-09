@@ -2,7 +2,7 @@
 pkgname=linux-pinebook-pro
 version=5.5.0
 _realver="5.5.0"
-_commit=d71a774aee61d67970d53077ef59be29035b1c90
+_commit=166431341d8f3ea88ff9b02e2776279cff59d60b
 revision=1
 wrksrc="linux-pinebook-pro-${_commit}"
 short_desc="Linux kernel and modules for Pinebook Pro"
@@ -23,7 +23,7 @@ archs="aarch64*"
 hostmakedepends="bc elfutils-devel flex gmp-devel kmod libmpc-devel 
  libressl-devel perl uboot-mkimage cpio"
 
-_kernver="${_realver}_${revision}"
+_kernver="${version}_${revision}"
 triggers="kernel-hooks"
 kernel_hooks_version="${_kernver}"
 

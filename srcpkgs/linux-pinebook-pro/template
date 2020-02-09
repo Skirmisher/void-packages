@@ -10,7 +10,7 @@ maintainer="Cameron Nemo <cnemo@tutanota.com>"
 license="GPL-2.0-only"
 homepage="https://gitlab.manjaro.org/tsys/linux-pinebook-pro"
 distfiles="https://gitlab.manjaro.org/tsys/${pkgname}/-/archive/${_commit}/${pkgname}-${_commit}.tar.gz"
-checksum="4fd9c676d2c01258884fcfa94991ed778cf4242e36d98a9d2242495173ea14dd"
+checksum="18128df9d8009fa5ec2a997c4c89d619836f19bda7470b730c2a0d67763b906f"
 patch_args="-Np1"
 
 nodebug=yes  # -dbg package is generated below manually

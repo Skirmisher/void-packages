@@ -1,0 +1,28 @@
+From 062c380a037d22662c925aa14f22a4cb84ae768d Mon Sep 17 00:00:00 2001
+From: Will Springer <skirmisher@protonmail.com>
+Date: Fri, 27 Mar 2020 02:14:14 -0700
+Subject: [PATCH] pinebook_pro_defconfig: enable instructions deprecated by
+ ARMv8
+
+---
+ arch/arm64/configs/pinebook_pro_defconfig | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm64/configs/pinebook_pro_defconfig b/arch/arm64/configs/pinebook_pro_defconfig
+index 44d84285f1e0..3f167aa2d500 100644
+--- a/arch/arm64/configs/pinebook_pro_defconfig
++++ b/arch/arm64/configs/pinebook_pro_defconfig
+@@ -51,6 +51,10 @@ CONFIG_PARAVIRT_TIME_ACCOUNTING=y
+ CONFIG_KEXEC=y
+ CONFIG_KEXEC_FILE=y
+ CONFIG_COMPAT=y
++CONFIG_ARMV8_DEPRECATED=y
++CONFIG_SWP_EMULATION=y
++CONFIG_CP15_BARRIER_EMULATION=y
++CONFIG_SETEND_EMULATION=y
+ CONFIG_ARM64_ACPI_PARKING_PROTOCOL=y
+ CONFIG_CMDLINE="console=ttyAMA0"
+ CONFIG_HIBERNATION=y
+-- 
+2.25.1
+

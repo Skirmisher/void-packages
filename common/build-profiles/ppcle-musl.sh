@@ -1,0 +1,5 @@
+XBPS_TARGET_CFLAGS="-mcpu=power9 -mtune=power9 -maltivec -mlong-double-64"
+XBPS_TARGET_CXXFLAGS="$XBPS_TARGET_CFLAGS"
+XBPS_TARGET_FFLAGS=""
+XBPS_TRIPLET="powerpcle-linux-musl"
+XBPS_RUST_TARGET="powerpcle-unknown-linux-musl"

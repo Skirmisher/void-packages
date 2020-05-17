@@ -1,0 +1,105 @@
+From 93fba279067f45cb231724b7a53b3f03c2b54e74 Mon Sep 17 00:00:00 2001
+From: Will Springer <skirmisher@protonmail.com>
+Date: Fri, 8 May 2020 15:20:36 -0700
+Subject: [PATCH] arch/powerpc: fix long long munging in compat_sys on LE
+
+Needed for 32-bit LE userlands to make 64-bit syscalls
+appropriately.
+---
+ arch/powerpc/kernel/sys_ppc32.c | 52 ++++++++++++++++++---------------
+ 1 file changed, 29 insertions(+), 23 deletions(-)
+
+diff --git a/arch/powerpc/kernel/sys_ppc32.c b/arch/powerpc/kernel/sys_ppc32.c
+index d36c6391eaf5..c3b9c1f25f8c 100644
+--- a/arch/powerpc/kernel/sys_ppc32.c
++++ b/arch/powerpc/kernel/sys_ppc32.c
+@@ -56,57 +56,63 @@ unsigned long compat_sys_mmap2(unsigned long addr, size_t len,
+ 	return sys_mmap(addr, len, prot, flags, fd, pgoff << 12);
+ }
+ 
+-/* 
++/*
+  * long long munging:
+- * The 32 bit ABI passes long longs in an odd even register pair.
++ * The 32 bit ABI passes long longs in an odd even register pair on BE.
++ * On LE it's the opposite, so we need to adjust padding based on
++ * kernel endianness.
+  */
++#define PPC32_LL_MUNGE(name, pad) pad u32 name##_hi, u32 name##_lo
++#ifdef __LITTLE_ENDIAN__
++#define PPC32_LE_PAD u32 unused,
++#define PPC32_BE_PAD
++#else
++#define PPC32_LE_PAD
++#define PPC32_BE_PAD u32 unused,
++#endif
+ 
+ compat_ssize_t compat_sys_pread64(unsigned int fd, char __user *ubuf, compat_size_t count,
+-			     u32 reg6, u32 poshi, u32 poslo)
++			     PPC32_LL_MUNGE(pos, PPC32_BE_PAD))
+ {
+-	return ksys_pread64(fd, ubuf, count, ((loff_t)poshi << 32) | poslo);
++	return ksys_pread64(fd, ubuf, count, ((loff_t)pos_hi << 32) | pos_lo);
+ }
+ 
+ compat_ssize_t compat_sys_pwrite64(unsigned int fd, const char __user *ubuf, compat_size_t count,
+-			      u32 reg6, u32 poshi, u32 poslo)
++			      PPC32_LL_MUNGE(pos, PPC32_BE_PAD))
+ {
+-	return ksys_pwrite64(fd, ubuf, count, ((loff_t)poshi << 32) | poslo);
++	return ksys_pwrite64(fd, ubuf, count, ((loff_t)pos_hi << 32) | pos_lo);
+ }
+ 
+-compat_ssize_t compat_sys_readahead(int fd, u32 r4, u32 offhi, u32 offlo, u32 count)
++compat_ssize_t compat_sys_readahead(int fd, PPC32_LL_MUNGE(offset, PPC32_BE_PAD), u32 count)
+ {
+-	return ksys_readahead(fd, ((loff_t)offhi << 32) | offlo, count);
++	return ksys_readahead(fd, ((loff_t)offset_hi << 32) | offset_lo, count);
+ }
+ 
+-asmlinkage int compat_sys_truncate64(const char __user * path, u32 reg4,
+-				unsigned long high, unsigned long low)
++asmlinkage int compat_sys_truncate64(const char __user * path, PPC32_LL_MUNGE(len, PPC32_BE_PAD))
+ {
+-	return ksys_truncate(path, (high << 32) | low);
++	return ksys_truncate(path, ((u64)len_hi << 32) | len_lo);
+ }
+ 
+-asmlinkage long compat_sys_fallocate(int fd, int mode, u32 offhi, u32 offlo,
+-				     u32 lenhi, u32 lenlo)
++asmlinkage long compat_sys_fallocate(int fd, int mode, PPC32_LL_MUNGE(offset, PPC32_LE_PAD),
++				     PPC32_LL_MUNGE(len, ))
+ {
+-	return ksys_fallocate(fd, mode, ((loff_t)offhi << 32) | offlo,
+-			     ((loff_t)lenhi << 32) | lenlo);
++	return ksys_fallocate(fd, mode, ((loff_t)offset_hi << 32) | offset_lo,
++			     ((loff_t)len_hi << 32) | len_lo);
+ }
+ 
+-asmlinkage int compat_sys_ftruncate64(unsigned int fd, u32 reg4, unsigned long high,
+-				 unsigned long low)
++asmlinkage int compat_sys_ftruncate64(unsigned int fd,  PPC32_LL_MUNGE(len, PPC32_BE_PAD))
+ {
+-	return ksys_ftruncate(fd, (high << 32) | low);
++	return ksys_ftruncate(fd, ((u64)len_hi << 32) | len_lo);
+ }
+ 
+-long ppc32_fadvise64(int fd, u32 unused, u32 offset_high, u32 offset_low,
+-		     size_t len, int advice)
++long ppc32_fadvise64(int fd, PPC32_LL_MUNGE(offset, PPC32_BE_PAD), size_t len, int advice)
+ {
+-	return ksys_fadvise64_64(fd, (u64)offset_high << 32 | offset_low, len,
++	return ksys_fadvise64_64(fd, (u64)offset_hi << 32 | offset_lo, len,
+ 				 advice);
+ }
+ 
+ asmlinkage long compat_sys_sync_file_range2(int fd, unsigned int flags,
+-				   unsigned offset_hi, unsigned offset_lo,
+-				   unsigned nbytes_hi, unsigned nbytes_lo)
++				   PPC32_LL_MUNGE(offset, PPC32_LE_PAD), PPC32_LL_MUNGE(nbytes, ))
+ {
+ 	loff_t offset = ((loff_t)offset_hi << 32) | offset_lo;
+ 	loff_t nbytes = ((loff_t)nbytes_hi << 32) | nbytes_lo;
+-- 
+2.26.2
+

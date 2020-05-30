@@ -1,0 +1,25 @@
+From 40a986ce5b3d2c7ad9c154c7972d53eae2071dbe Mon Sep 17 00:00:00 2001
+From: Will Springer <skirmisher@protonmail.com>
+Date: Wed, 11 Mar 2020 21:25:06 -0700
+Subject: [PATCH] fix assumption of 64-bit when in LE mode on ppc
+
+---
+ libgo/runtime/go-signal.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libgo/runtime/go-signal.c b/libgo/runtime/go-signal.c
+index 081604e1849..dc4e3416c04 100644
+--- libgo/runtime/go-signal.c
++++ libgo/runtime/go-signal.c
+@@ -343,7 +343,7 @@ dumpregs(siginfo_t *info __attribute__((unused)), void *context __attribute__((u
+   #endif
+ #endif
+ 
+-#if defined(__PPC__) && defined(__LITTLE_ENDIAN__)
++#if defined(__powerpc64__) && defined(__LITTLE_ENDIAN__)
+   #ifdef __linux__
+ 	  {
+ 		mcontext_t *m = &((ucontext_t*)(context))->uc_mcontext;
+-- 
+2.25.1
+

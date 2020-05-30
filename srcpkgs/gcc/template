@@ -105,6 +105,8 @@ case "$XBPS_TARGET_MACHINE" in
 	armv7l-musl) _triplet="armv7l-linux-musleabihf";;
 	aarch64) _triplet="aarch64-linux-gnu";;
 	aarch64-musl) _triplet="aarch64-linux-musl";;
+	ppcle) _triplet="powerpcle-linux-gnu";;
+	ppcle-musl) _triplet="powerpcle-linux-musl";;
 	ppc) _triplet="powerpc-linux-gnu";;
 	ppc-musl) _triplet="powerpc-linux-musl";;
 	ppcle) _triplet="powerpcle-linux-gnu";;
@@ -195,6 +197,8 @@ do_configure() {
 			_args+=" --with-arch=armv8-a"
 			sed -i '/m64=/s/lib64/lib/' gcc/config/aarch64/t-aarch64-linux
 			;;
+		ppcle) _args+=" --target=powerpcle-linux-gnu --enable-secureplt";;
+		ppcle-musl) _args+=" --target=powerpcle-linux-musl --enable-secureplt --disable-decimal-float";;
 		ppc) _args+=" --target=powerpc-linux-gnu --enable-secureplt";;
 		ppc-musl) _args+=" --target=powerpc-linux-musl --enable-secureplt --disable-decimal-float";;
 		ppcle) _args+=" --target=powerpcle-linux-gnu --enable-secureplt";;

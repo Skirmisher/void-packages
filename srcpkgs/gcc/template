@@ -105,6 +105,8 @@ case "$XBPS_TARGET_MACHINE" in
 	armv7l-musl) _triplet="armv7l-linux-musleabihf";;
 	aarch64) _triplet="aarch64-linux-gnu";;
 	aarch64-musl) _triplet="aarch64-linux-musl";;
+	ppcle) _triplet="powerpcle-linux-gnu";;
+	ppcle-musl) _triplet="powerpcle-linux-musl";;
 	ppc) _triplet="powerpc-linux-gnu";;
 	ppc-musl) _triplet="powerpc-linux-musl";;
 	ppcle) _triplet="powerpcle-linux-gnu";;

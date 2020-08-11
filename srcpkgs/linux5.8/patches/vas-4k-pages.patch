@@ -1,0 +1,25 @@
+From 734d118a77108e3d140eee98efab27f21bddc0dd Mon Sep 17 00:00:00 2001
+From: Will Springer <skirmisher@protonmail.com>
+Date: Sat, 8 Aug 2020 14:20:38 -0700
+Subject: [PATCH] remove 64k pagesize dependency for CONFIG_PPC_VAS
+
+---
+ arch/powerpc/platforms/powernv/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/powerpc/platforms/powernv/Kconfig b/arch/powerpc/platforms/powernv/Kconfig
+index 938803eab0ad..40c81b358004 100644
+--- a/arch/powerpc/platforms/powernv/Kconfig
++++ b/arch/powerpc/platforms/powernv/Kconfig
+@@ -35,7 +35,7 @@ config PPC_MEMTRACE
+ 
+ config PPC_VAS
+ 	bool "IBM Virtual Accelerator Switchboard (VAS)"
+-	depends on PPC_POWERNV && PPC_64K_PAGES
++	depends on PPC_POWERNV
+ 	default y
+ 	help
+ 	  This enables support for IBM Virtual Accelerator Switchboard (VAS).
+-- 
+2.28.0
+

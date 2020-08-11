@@ -1,0 +1,325 @@
+From c22203848cb4affc0fbb402e88a977df971597b9 Mon Sep 17 00:00:00 2001
+From: Will Springer <skirmisher@protonmail.com>
+Date: Tue, 11 Aug 2020 09:31:26 -0700
+Subject: [PATCH] powerpc: convert pr_devel statements to pr_debug, add more
+ debug
+
+---
+ arch/powerpc/platforms/powernv/vas-api.c    |  8 +--
+ arch/powerpc/platforms/powernv/vas-fault.c  | 12 ++--
+ arch/powerpc/platforms/powernv/vas-window.c | 63 +++++++++++++++++----
+ arch/powerpc/platforms/powernv/vas.c        |  6 +-
+ 4 files changed, 64 insertions(+), 25 deletions(-)
+
+diff --git a/arch/powerpc/platforms/powernv/vas-api.c b/arch/powerpc/platforms/powernv/vas-api.c
+index 98ed5d8c5441..cf45c4064724 100644
+--- a/arch/powerpc/platforms/powernv/vas-api.c
++++ b/arch/powerpc/platforms/powernv/vas-api.c
+@@ -107,7 +107,7 @@ static int coproc_ioc_tx_win_open(struct file *fp, unsigned long arg)
+ 	txattr.rsvd_txbuf_count = false;
+ 	txattr.pswid = false;
+ 
+-	pr_devel("Pid %d: Opening txwin, PIDR %ld\n", txattr.pidr,
++	pr_debug("Pid %d: Opening txwin, PIDR %ld\n", txattr.pidr,
+ 				mfspr(SPRN_PID));
+ 
+ 	txwin = vas_tx_win_open(vasid, cp_inst->coproc->cop_type, &txattr);
+@@ -180,7 +180,7 @@ static int coproc_mmap(struct file *fp, struct vm_area_struct *vma)
+ 	rc = remap_pfn_range(vma, vma->vm_start, pfn + vma->vm_pgoff,
+ 			vma->vm_end - vma->vm_start, prot);
+ 
+-	pr_devel("%s(): paste addr %llx at %lx, rc %d\n", __func__,
++	pr_debug("%s(): paste addr %llx at %lx, rc %d\n", __func__,
+ 			paste_addr, vma->vm_start, rc);
+ 
+ 	return rc;
+@@ -219,7 +219,7 @@ int vas_register_coproc_api(struct module *mod, enum vas_cop_type cop_type,
+ 		return rc;
+ 	}
+ 
+-	pr_devel("%s device allocated, dev [%i,%i]\n", name,
++	pr_debug("%s device allocated, dev [%i,%i]\n", name,
+ 			MAJOR(coproc_device.devt), MINOR(coproc_device.devt));
+ 
+ 	coproc_device.class = class_create(mod, name);
+@@ -249,7 +249,7 @@ int vas_register_coproc_api(struct module *mod, enum vas_cop_type cop_type,
+ 		goto err;
+ 	}
+ 
+-	pr_devel("%s: Added dev [%d,%d]\n", __func__, MAJOR(devno),
++	pr_debug("%s: Added dev [%d,%d]\n", __func__, MAJOR(devno),
+ 			MINOR(devno));
+ 
+ 	return 0;
+diff --git a/arch/powerpc/platforms/powernv/vas-fault.c b/arch/powerpc/platforms/powernv/vas-fault.c
+index 3d21fce254b7..204d7634c335 100644
+--- a/arch/powerpc/platforms/powernv/vas-fault.c
++++ b/arch/powerpc/platforms/powernv/vas-fault.c
+@@ -32,17 +32,17 @@ static void dump_crb(struct coprocessor_request_block *crb)
+ 	struct nx_fault_stamp *nx;
+ 
+ 	dde = &crb->source;
+-	pr_devel("SrcDDE: addr 0x%llx, len %d, count %d, idx %d, flags %d\n",
++	pr_debug("SrcDDE: addr 0x%llx, len %d, count %d, idx %d, flags %d\n",
+ 		be64_to_cpu(dde->address), be32_to_cpu(dde->length),
+ 		dde->count, dde->index, dde->flags);
+ 
+ 	dde = &crb->target;
+-	pr_devel("TgtDDE: addr 0x%llx, len %d, count %d, idx %d, flags %d\n",
++	pr_debug("TgtDDE: addr 0x%llx, len %d, count %d, idx %d, flags %d\n",
+ 		be64_to_cpu(dde->address), be32_to_cpu(dde->length),
+ 		dde->count, dde->index, dde->flags);
+ 
+ 	nx = &crb->stamp.nx;
+-	pr_devel("NX Stamp: PSWID 0x%x, FSA 0x%llx, flags 0x%x, FS 0x%x\n",
++	pr_debug("NX Stamp: PSWID 0x%x, FSA 0x%llx, flags 0x%x, FS 0x%x\n",
+ 		be32_to_cpu(nx->pswid),
+ 		be64_to_cpu(crb->stamp.nx.fault_storage_addr),
+ 		nx->flags, nx->fault_status);
+@@ -166,7 +166,7 @@ static void update_csb(struct vas_window *window,
+ 	rc = kill_pid_info(SIGSEGV, &info, pid);
+ 	rcu_read_unlock();
+ 
+-	pr_devel("%s(): pid %d kill_proc_info() rc %d\n", __func__,
++	pr_debug("%s(): pid %d kill_proc_info() rc %d\n", __func__,
+ 			pid_vnr(pid), rc);
+ }
+ 
+@@ -268,7 +268,7 @@ irqreturn_t vas_fault_thread_fn(int irq, void *data)
+ 		 */
+ 		vas_return_credit(vinst->fault_win, false);
+ 
+-		pr_devel("VAS[%d] fault_fifo %p, fifo %p, fault_crbs %d\n",
++		pr_debug("VAS[%d] fault_fifo %p, fifo %p, fault_crbs %d\n",
+ 				vinst->vas_id, vinst->fault_fifo, fifo,
+ 				vinst->fault_crbs);
+ 
+@@ -374,7 +374,7 @@ int vas_setup_fault_window(struct vas_instance *vinst)
+ 		return PTR_ERR(vinst->fault_win);
+ 	}
+ 
+-	pr_devel("VAS: Created FaultWin %d, LPID/PID/TID [%d/%d/%d]\n",
++	pr_debug("VAS: Created FaultWin %d, LPID/PID/TID [%d/%d/%d]\n",
+ 			vinst->fault_win->winid, attr.lnotify_lpid,
+ 			attr.lnotify_pid, attr.lnotify_tid);
+ 
+diff --git a/arch/powerpc/platforms/powernv/vas-window.c b/arch/powerpc/platforms/powernv/vas-window.c
+index 6434f9cb5aed..dfa08ac1a9f3 100644
+--- a/arch/powerpc/platforms/powernv/vas-window.c
++++ b/arch/powerpc/platforms/powernv/vas-window.c
+@@ -83,19 +83,19 @@ static void *map_paste_region(struct vas_window *txwin)
+ 	vas_win_paste_addr(txwin, &start, &len);
+ 
+ 	if (!request_mem_region(start, len, name)) {
+-		pr_devel("%s(): request_mem_region(0x%llx, %d) failed\n",
++		pr_debug("%s(): request_mem_region(0x%llx, %d) failed\n",
+ 				__func__, start, len);
+ 		goto free_name;
+ 	}
+ 
+ 	map = ioremap_cache(start, len);
+ 	if (!map) {
+-		pr_devel("%s(): ioremap_cache(0x%llx, %d) failed\n", __func__,
++		pr_debug("%s(): ioremap_cache(0x%llx, %d) failed\n", __func__,
+ 				start, len);
+ 		goto free_name;
+ 	}
+ 
+-	pr_devel("Mapped paste addr 0x%llx to kaddr 0x%p\n", start, map);
++	pr_debug("Mapped paste addr 0x%llx to kaddr 0x%p\n", start, map);
+ 	return map;
+ 
+ free_name:
+@@ -108,14 +108,14 @@ static void *map_mmio_region(char *name, u64 start, int len)
+ 	void *map;
+ 
+ 	if (!request_mem_region(start, len, name)) {
+-		pr_devel("%s(): request_mem_region(0x%llx, %d) failed\n",
++		pr_debug("%s(): request_mem_region(0x%llx, %d) failed\n",
+ 				__func__, start, len);
+ 		return NULL;
+ 	}
+ 
+ 	map = ioremap(start, len);
+ 	if (!map) {
+-		pr_devel("%s(): ioremap(0x%llx, %d) failed\n", __func__, start,
++		pr_debug("%s(): ioremap(0x%llx, %d) failed\n", __func__, start,
+ 				len);
+ 		return NULL;
+ 	}
+@@ -763,40 +763,72 @@ static bool rx_win_args_valid(enum vas_cop_type cop,
+ 			attr->rx_fifo_size);
+ 
+ 	if (cop >= VAS_COP_TYPE_MAX)
++	{
++		pr_debug("cop >= VAS_COP_TYPE_MAX");
+ 		return false;
++	}
+ 
+ 	if (cop != VAS_COP_TYPE_FTW &&
+ 				attr->rx_fifo_size < VAS_RX_FIFO_SIZE_MIN)
++	{
++		pr_debug("cop != VAS_COP_TYPE_FTW && \
++					attr->rx_fifo_size < VAS_RX_FIFO_SIZE_MIN\n");
+ 		return false;
++	}
+ 
+ 	if (attr->rx_fifo_size > VAS_RX_FIFO_SIZE_MAX)
++	{
++		pr_debug("attr->rx_fifo_size > VAS_RX_FIFO_SIZE_MAX\n");
+ 		return false;
++	}
+ 
+ 	if (!attr->wcreds_max)
++	{
++		pr_debug("!attr->wcreds_max\n");
+ 		return false;
++	}
+ 
+ 	if (attr->nx_win) {
+ 		/* cannot be fault or user window if it is nx */
+ 		if (attr->fault_win || attr->user_win)
++		{
++			pr_debug("cannot be fault or user window if it is nx\n");
++			pr_debug("attr->nx_win && (attr->fault_win || attr->user_win)\n");
+ 			return false;
++		}
+ 		/*
+ 		 * Section 3.1.4.32: NX Windows must not disable notification,
+ 		 *	and must not enable interrupts or early notification.
+ 		 */
+ 		if (attr->notify_disable || !attr->intr_disable ||
+ 				attr->notify_early)
++		{
++			pr_debug("Section 3.1.4.32: NX Windows must not disable notification, \
++						and must not enable interrupts or early notification.\n");
++			pr_debug("attr->nx_win && (attr->notify_disable || !attr->intr_disable \
++						|| attr->notify_early)\n");
+ 			return false;
++		}
+ 	} else if (attr->fault_win) {
+ 		/* cannot be both fault and user window */
+ 		if (attr->user_win)
++		{
++			pr_debug("cannot be both fault and user window\n");
++			pr_debug("attr->fault_win && attr->user_win\n");
+ 			return false;
++		}
+ 
+ 		/*
+ 		 * Section 3.1.4.32: Fault windows must disable notification
+ 		 *	but not interrupts.
+ 		 */
+ 		if (!attr->notify_disable || attr->intr_disable)
++		{
++			pr_debug("Section 3.1.4.32: Fault windows must disable notification \
++						but not interrupts.\n");
++			pr_debug("attr->fault_win && (!attr->notify_disable || attr->intr_disable)\n");
+ 			return false;
++		}
+ 
+ 	} else if (attr->user_win) {
+ 		/*
+@@ -804,9 +836,16 @@ static bool rx_win_args_valid(enum vas_cop_type cop,
+ 		 * (FTW). They don't need a FIFO and must disable interrupts
+ 		 */
+ 		if (attr->rx_fifo || attr->rx_fifo_size || !attr->intr_disable)
++		{
++			pr_debug("User receive windows are only for fast-thread-wakeup \
++						(FTW). They don't need a FIFO and must disable interrupts\n");
++			pr_debug("attr->user_win && (attr->rx_fifo || attr->rx_fifo_size \
++						|| !attr->intr_disable)\n");
+ 			return false;
++		}
+ 	} else {
+ 		/* Rx window must be one of NX or Fault or User window. */
++		pr_debug("Rx window must be one of NX or Fault or User window\n");
+ 		return false;
+ 	}
+ 
+@@ -863,14 +902,14 @@ struct vas_window *vas_rx_win_open(int vasid, enum vas_cop_type cop,
+ 
+ 	vinst = find_vas_instance(vasid);
+ 	if (!vinst) {
+-		pr_devel("vasid %d not found!\n", vasid);
++		pr_debug("vasid %d not found!\n", vasid);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+-	pr_devel("Found instance %d\n", vasid);
++	pr_debug("Found instance %d\n", vasid);
+ 
+ 	rxwin = vas_window_alloc(vinst);
+ 	if (IS_ERR(rxwin)) {
+-		pr_devel("Unable to allocate memory for Rx window\n");
++		pr_debug("Unable to allocate memory for Rx window\n");
+ 		return rxwin;
+ 	}
+ 
+@@ -1014,13 +1053,13 @@ struct vas_window *vas_tx_win_open(int vasid, enum vas_cop_type cop,
+ 
+ 	vinst = find_vas_instance(vasid);
+ 	if (!vinst) {
+-		pr_devel("vasid %d not found!\n", vasid);
++		pr_debug("vasid %d not found!\n", vasid);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
+ 	rxwin = get_vinst_rxwin(vinst, cop, attr->pswid);
+ 	if (IS_ERR(rxwin)) {
+-		pr_devel("No RxWin for vasid %d, cop %d\n", vasid, cop);
++		pr_debug("No RxWin for vasid %d, cop %d\n", vasid, cop);
+ 		return rxwin;
+ 	}
+ 
+@@ -1320,7 +1359,7 @@ int vas_win_close(struct vas_window *window)
+ 		return 0;
+ 
+ 	if (!window->tx_win && atomic_read(&window->num_txwins) != 0) {
+-		pr_devel("Attempting to close an active Rx window!\n");
++		pr_debug("Attempting to close an active Rx window!\n");
+ 		WARN_ON_ONCE(1);
+ 		return -EBUSY;
+ 	}
+@@ -1399,7 +1438,7 @@ struct vas_window *vas_pswid_to_window(struct vas_instance *vinst,
+ 	int winid;
+ 
+ 	if (!pswid) {
+-		pr_devel("%s: called for pswid 0!\n", __func__);
++		pr_debug("%s: called for pswid 0!\n", __func__);
+ 		return ERR_PTR(-ESRCH);
+ 	}
+ 
+diff --git a/arch/powerpc/platforms/powernv/vas.c b/arch/powerpc/platforms/powernv/vas.c
+index 598e4cd563fb..d59805ae597d 100644
+--- a/arch/powerpc/platforms/powernv/vas.c
++++ b/arch/powerpc/platforms/powernv/vas.c
+@@ -125,7 +125,7 @@ static int init_vas_instance(struct platform_device *pdev)
+ 	}
+ 
+ 	vinst->irq_port = xd->trig_page;
+-	pr_devel("Initialized instance [%s, %d] paste_base 0x%llx paste_win_id_shift 0x%llx IRQ %d Port 0x%llx\n",
++	pr_debug("Initialized instance [%s, %d] paste_base 0x%llx paste_win_id_shift 0x%llx IRQ %d Port 0x%llx\n",
+ 			pdev->name, vasid, vinst->paste_base_addr,
+ 			vinst->paste_win_id_shift, vinst->virq,
+ 			vinst->irq_port);
+@@ -190,7 +190,7 @@ struct vas_instance *find_vas_instance(int vasid)
+ 	}
+ 	mutex_unlock(&vas_mutex);
+ 
+-	pr_devel("Instance %d not found\n", vasid);
++	pr_debug("Instance %d not found\n", vasid);
+ 	return NULL;
+ }
+ 
+@@ -241,7 +241,7 @@ static int __init vas_init(void)
+ 		return -ENODEV;
+ 	}
+ 
+-	pr_devel("Found %d instances\n", found);
++	pr_debug("Found %d instances\n", found);
+ 
+ 	return 0;
+ }
+-- 
+2.28.0
+
